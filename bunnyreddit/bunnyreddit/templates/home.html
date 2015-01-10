@@ -1,5 +1,17 @@
 <html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css"/>
+    </head>
+
     <body>
-        TEST
+        
+        <ul>
+            {% for post in posts %}
+            <li>
+                <a href="{{ post.url }}"><span> {{ post.title }} </span></a>
+                <a href="/post/{{ post.name }}/">HEAR</a>
+            </li>
+            {% endfor %}
+        </ul>
     </body>
 </html>

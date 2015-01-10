@@ -1,11 +1,12 @@
 import requests
 import simplejson
 from requests.auth import HTTPBasicAuth
+from django.conf import settings
 
-bunny_url = 'https://api.voicebunny.com'
-reddit_url = 'https://reddit.com'
-api_id = '41789'
-api_key = "e7675939164ae130c817ab067d4ca7dd"
+bunny_url = settings.BUNNY_URL
+reddit_url = settings.REDDIT_URL
+api_id = settings.BUNNY_API_ID
+api_key = settings.BUNNY_API_KEY
 
 class RedditPost:
 

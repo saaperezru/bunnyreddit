@@ -84,3 +84,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+BUNNY_URL = 'https://api.voicebunny.com'
+REDDIT_URL = 'https://reddit.com'
+BUNNY_API_ID = '41789'
+BUNNY_API_KEY = "e7675939164ae130c817ab067d4ca7dd"
