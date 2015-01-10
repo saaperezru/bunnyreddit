@@ -1,6 +1,9 @@
 import requests
 import simplejson
 from requests.auth import HTTPBasicAuth
+import logging
+import time
+logger = logging.getLogger(__name__)
 
 class RedditPost:
 
@@ -11,28 +14,59 @@ class RedditPost:
 
 class RedditAPI:
 
-    def __init__(self,url):
+    def __init__(self,url,max_attempts=3):
+        self.max_attempts = max_attempts
         self.reddit_url = url
 
     def getPost(self,name):
-        req = requests.post(self.reddit_url+'/by_id/'+name+'.json',
-           verify=False)
-        req.headers['User-Agent'] =  'bunnyreddit/0.1 by saaperezru'
-        if(len(simplejson.loads(req.text)['data']['children'])<1):
+        error = True
+        attempts = 0
+        while(error and attempts < self.max_attempts):
+            req = requests.post(self.reddit_url+'/by_id/'+name+'.json',
+               verify=False)
+            req.headers['User-Agent'] =  'bunnyreddit/0.1 by saaperezru'
+            data = simplejson.loads(req.text)
+            logger.info(data)
+            print(data)
+            if('error' in data and data['error'] == 429):
+                logger.info("Too many requests for reddit!!")
+                print("Too many requests for reddit!!")
+                time.sleep(5)
+            else:
+                error = False
+            attempts = attempts + 1
+        if('error' in data and data['error'] == 429):
+            logger.info("Too many requests for reddit!!")
+            time.sleep(5)
             raise Exception("No post found by name" + name)
-        data = simplejson.loads(req.text)['data']['children'][0]['data']
+        data = data['data']['children'][0]['data']
         return RedditPost(data['title'],data['url'],data['name'])
 
     def getTrending(self,channel,number,sort='hot'):
-        req = requests.post(self.reddit_url+'/r/'+ channel  +'/' + sort + '.json',
-           data={
-                'limit': number,
-                'show': 'all'
-           }, 
-           verify=False)
-        req.headers['User-Agent'] =  'bunnyreddit/0.1 by saaperezru'
-        data = simplejson.loads(req.text)
-        print data
+        error = True
+        attempts = 0
+        while(error and attempts < self.max_attempts):
+            req = requests.post(self.reddit_url+'/r/'+ channel  +'/' + sort + '.json',
+               data={
+                    'limit': number,
+                    'show': 'all'
+               }, 
+               verify=False)
+            req.headers['User-Agent'] =  'bunnyreddit/0.1 by saaperezru'
+            data = simplejson.loads(req.text)
+            print data
+            if('error' in data and data['error'] == 429):
+                logger.info("Too many requests for reddit!!")
+                print("Too many requests for reddit!!")
+                time.sleep(5)
+            else:
+                error = False
+            attempts = attempts + 1
+
+        if('error' in data and data['error'] == 429):
+            logger.info("Too many requests for reddit!!")
+            time.sleep(5)
+            raise Exception("Could not get trending")
         ret = []
         for i in data['data']['children']:
             post = i['data']
