@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 rAPI = RedditAPI(settings.REDDIT_URL)
 bAPI = BunnyAPI(settings.BUNNY_URL,settings.BUNNY_API_ID,settings.BUNNY_API_KEY)
+print (settings.BUNNY_URL,settings.BUNNY_API_ID,settings.BUNNY_API_KEY)
 
 def home(request):
     """
@@ -19,32 +20,31 @@ def home(request):
     context = {'posts': rAPI.getTrending('all',1)}
     return render(request, 'home.html',context)
 
-def getPostAudio(post):
+def getPostAudio(name):
+    p = None
     try:
-        p = Post.objects.get(name__exact=post.name)
+        p = Post.objects.get(name__exact=name)
         logger.info("Retrieved " + name + " from database")
-    except ObjectDoesNotExist:
-        bid = 0
-        audio = ""
-        ready = False
-        while(not ready):
-            try:
-                data = bAPI.sendProj(post.name,post.title)
-                logger.info(data)
-                #bid = data['reads'][0]['id']
-                #audio = bAPI.getRead(bid)
-                audio = data['reads'][0]['urls']['part001']['original']
-                #wait for audio to be ready
-                ready = True
-            except Exception:
-                ready = False
-        p = Post(name=post.name,bunny_proj_id=bid,audio_url=audio)
+        proj = bAPI.getProj(p.bunny_proj_id)
+        p.status = proj['reads'][0]['status']
         p.save()
-    return p.audio_url
+    except ObjectDoesNotExist:
+        post = rAPI.getPost(name)
+        proj = bAPI.sendProj(post.name,post.title)
+        logger.info(proj)
+        projId = proj['id']
+        audio = proj['reads'][0]['urls']['part001']['original']
+        status = proj['reads'][0]['status']
+        p = Post(name=post.name,title=post.title,bunny_proj_id=projId,audio_url=audio,status=status)
+        p.save()
+    return p
     
 def getPost(request,name):
+    getPostAudio(name)
     context = {
         'wav_audio' : '',
-        'mp3_audio' : getPostAudio(rAPI.getPost(name))
+        'title' : p.title,
+        'mp3_audio' : p.audio_url,
+        'status' : p.status
     }
     return render(request, 'post.html', context)

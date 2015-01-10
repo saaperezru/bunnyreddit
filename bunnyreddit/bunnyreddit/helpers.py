@@ -91,8 +91,14 @@ class BunnyAPI:
         data = simplejson.loads(req.text)
         return data['project']
 
+    def getProject(self,projId):
+        req = requests.get(self.bunny_url+'/projects/'+projId,
+           auth=HTTPBasicAuth(self.api_id, self.api_key),verify=False)
+        data = simplejson.loads(req.text)
+        return data
+
     def getRead(self,bid):
         req = requests.get(self.bunny_url+'/reads/'+bid,
             auth=HTTPBasicAuth(self.api_id, self.api_key),verify=False)
         data = simplejson.loads(req.text)
-        return data['reads'][0]['urls']['part001']['original']
+        return data
