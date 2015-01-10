@@ -89,7 +89,11 @@ class BunnyAPI:
            }, 
            auth=HTTPBasicAuth(self.api_id, self.api_key),verify=False)
         data = simplejson.loads(req.text)
-        return data['project']
+        print data
+        if('project' in data):
+            return data['project']
+        elif('projects' in data):
+            return data['projects'][0]
 
     def getProject(self,projId):
         req = requests.get(self.bunny_url+'/projects/'+projId,
