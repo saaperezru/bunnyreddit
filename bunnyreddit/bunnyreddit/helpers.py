@@ -1,12 +1,6 @@
 import requests
 import simplejson
 from requests.auth import HTTPBasicAuth
-from django.conf import settings
-
-bunny_url = settings.BUNNY_URL
-reddit_url = settings.REDDIT_URL
-api_id = settings.BUNNY_API_ID
-api_key = settings.BUNNY_API_KEY
 
 class RedditPost:
 
@@ -15,45 +9,56 @@ class RedditPost:
         self.url = url
         self.name = name
 
-def sendProj(title,script,test=1):
-    req = requests.post(bunny_url+'/projects/addSpeedy',
-       data={
-            'title': title,
-            'script': script,
-            'test': test
-       }, 
-       auth=HTTPBasicAuth(api_id, api_key),verify=False)
-    data = simplejson.loads(req.text)
-    return data['project']
+class RedditAPI:
 
+    def __init__(self,url):
+        self.reddit_url = url
 
-def getProj(bid):
-    req = requests.get(bunny_url+'/reads/'+bid,
-        auth=HTTPBasicAuth(api_id, api_key),verify=False)
-    data = simplejson.loads(req.text)
-    return data['reads'][0]['urls']['part001']['original']
+    def getPost(self,name):
+        req = requests.post(self.reddit_url+'/by_id/'+name+'.json',
+           verify=False)
+        req.headers['User-Agent'] =  'bunnyreddit/0.1'
+        if(len(simplejson.loads(req.text)['data']['children'])<1):
+            raise Exception("No post found by name" + name)
+        data = simplejson.loads(req.text)['data']['children'][0]['data']
+        return RedditPost(data['title'],data['url'],data['name'])
 
-def getPost(name):
-    req = requests.post(reddit_url+'/by_id/'+name+'.json',
-       verify=False)
-    req.headers['User-Agent'] =  'bunnyreddit/0.1'
-    if(len(simplejson.loads(req.text)['data']['children'])<1):
-        raise Exception("No post found by name" + name)
-    data = simplejson.loads(req.text)['data']['children'][0]['data']
-    return RedditPost(data['title'],data['url'],data['name'])
+    def getTrending(self,channel,number,sort='hot'):
+        req = requests.post(self.reddit_url+'/r/'+ channel  +'/' + sort + '.json',
+           data={
+                'limit': number,
+                'show': 'all'
+           }, 
+           verify=False)
+        req.headers['User-Agent'] =  'bunnyreddit/0.1'
+        data = simplejson.loads(req.text)
+        print data
+        ret = []
+        for i in data['data']['children']:
+            post = i['data']
+            ret.append(RedditPost(post['title'],post['url'],post['name']))
+        return ret
 
-def getTrending(number):
-    req = requests.post(reddit_url+'/r/hot.json',
-       data={
-            'limit': number,
-            'show': 'all'
-       }, 
-       verify=False)
-    req.headers['User-Agent'] =  'bunnyreddit/0.1'
-    data = simplejson.loads(req.text)
-    print data
-    ret = []
-    for i in data['data']['children']:
-        post = i['data']
-        ret.append(RedditPost(post['title'],post['url'],post['name']))
-    return ret
+class BunnyAPI:
+
+    def __init__(self,url,id,key):
+        self.bunny_url = url
+        self.api_id = id
+        self.api_key = key
+
+    def sendProj(self,title,script,test=1):
+        req = requests.post(self.bunny_url+'/projects/addSpeedy',
+           data={
+                'title': title,
+                'script': script,
+                'test': test
+           }, 
+           auth=HTTPBasicAuth(self.api_id, self.api_key),verify=False)
+        data = simplejson.loads(req.text)
+        return data['project']
+
+    def getRead(self,bid):
+        req = requests.get(self.bunny_url+'/reads/'+bid,
+            auth=HTTPBasicAuth(self.api_id, self.api_key),verify=False)
+        data = simplejson.loads(req.text)
+        return data['reads'][0]['urls']['part001']['original']
