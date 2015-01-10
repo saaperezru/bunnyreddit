@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404, render
 def home(request):
     """
     this will render the home page
