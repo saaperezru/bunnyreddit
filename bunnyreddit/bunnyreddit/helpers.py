@@ -17,7 +17,7 @@ class RedditAPI:
     def getPost(self,name):
         req = requests.post(self.reddit_url+'/by_id/'+name+'.json',
            verify=False)
-        req.headers['User-Agent'] =  'bunnyreddit/0.1'
+        req.headers['User-Agent'] =  'bunnyreddit/0.1 by saaperezru'
         if(len(simplejson.loads(req.text)['data']['children'])<1):
             raise Exception("No post found by name" + name)
         data = simplejson.loads(req.text)['data']['children'][0]['data']
@@ -30,7 +30,7 @@ class RedditAPI:
                 'show': 'all'
            }, 
            verify=False)
-        req.headers['User-Agent'] =  'bunnyreddit/0.1'
+        req.headers['User-Agent'] =  'bunnyreddit/0.1 by saaperezru'
         data = simplejson.loads(req.text)
         print data
         ret = []
