@@ -3,10 +3,15 @@ import simplejson
 from requests.auth import HTTPBasicAuth
 
 bunny_url = 'https://api.voicebunny.com'
-reddit_url = 'https://api.voicebunny.com'
+reddit_url = 'https://reddit.com'
 api_id = '41789'
 api_key = "e7675939164ae130c817ab067d4ca7dd"
 
+class RedditPost:
+
+    def __init__(self,title,url):
+        self.title = title
+        self.url = url
 
 def sendProj(title,script,test=1):
     req = requests.post(bunny_url+'/projects/addSpeedy',
@@ -27,6 +32,17 @@ def getProj(bid):
     return data['reads'][0]['urls']['part001']['original']
 
 def getTrending(number):
-    req = requests.get(reddit_url+'/r/hot.json',verify=False)
+    req = requests.post(reddit_url+'/r/hot.json',
+       data={
+            'limit': number,
+            'show': 'all'
+       }, 
+       verify=False)
+    req.headers['User-Agent'] =  'bunnyreddit/0.1'
     data = simplejson.loads(req.text)
-    return data[]
+    return data
+    ret = []
+    for i in data['data']['children']:
+        post = i['data']
+        ret.append(RedditPost(post['title'],post['url']))
+    return ret
