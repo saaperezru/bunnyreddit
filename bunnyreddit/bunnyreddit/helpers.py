@@ -40,7 +40,7 @@ def getTrending(number):
        verify=False)
     req.headers['User-Agent'] =  'bunnyreddit/0.1'
     data = simplejson.loads(req.text)
-    return data
+    print data
     ret = []
     for i in data['data']['children']:
         post = i['data']
