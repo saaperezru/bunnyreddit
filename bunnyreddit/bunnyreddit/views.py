@@ -25,12 +25,14 @@ def getPostAudio(name):
     try:
         p = Post.objects.get(name__exact=name)
         logger.info("Retrieved " + name + " from database")
-        proj = bAPI.getProj(p.bunny_proj_id)
+        proj = bAPI.getProject(p.bunny_proj_id)
+        print proj
+        print proj['reads']
         p.status = proj['reads'][0]['status']
         p.save()
     except ObjectDoesNotExist:
         post = rAPI.getPost(name)
-        proj = bAPI.sendProj(post.name,post.title)
+        proj = bAPI.sendProj(post.name,post.title,test=0)
         logger.info(proj)
         projId = proj['id']
         audio = proj['reads'][0]['urls']['part001']['original']
@@ -40,7 +42,7 @@ def getPostAudio(name):
     return p
     
 def getPost(request,name):
-    getPostAudio(name)
+    p = getPostAudio(name)
     context = {
         'wav_audio' : '',
         'title' : p.title,
